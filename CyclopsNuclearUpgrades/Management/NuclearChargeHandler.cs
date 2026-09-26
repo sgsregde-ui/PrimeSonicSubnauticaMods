@@ -30,7 +30,7 @@ internal class NuclearChargeHandler : CyclopsCharger
     private NuclearUpgradeHandler upgradeHandler;
     private NuclearUpgradeHandler NuclearHandler => upgradeHandler ?? (upgradeHandler = MCUServices.Find.CyclopsUpgradeHandler<NuclearUpgradeHandler>(base.Cyclops, nuclearModuleID));
 
-    internal bool IsOverheated => nuclearState == NuclearState.Overheated;
+    internal bool IsOverheated => false;
     internal float HeatLevel { get; private set; } = 0f;
 
     public override float TotalReserveEnergy => this.NuclearHandler.TotalBatteryCharge;
@@ -76,22 +76,6 @@ internal class NuclearChargeHandler : CyclopsCharger
             nuclearState = NuclearState.None;
             return 0f;
         }
-        else if (this.HeatLevel >= MaxHeatLoad)
-        {
-            chargeRate = Mathf.Max(MinNuclearChargeRate, chargeRate - MinNuclearChargeRate);
-            nuclearState = NuclearState.Overheated;
-            this.NuclearHandler.TooHotToHandle = true;
-            return 0f;
-        }
-        else if (nuclearState == NuclearState.Overheated)
-        {
-            if (this.HeatLevel <= 0) // Do not allow nuclear power to charge again until heat has returned to zero
-            {
-                nuclearState = NuclearState.None;
-                this.NuclearHandler.TooHotToHandle = false;
-            }
-            return 0f;
-        }
         else
         {
             nuclearState = NuclearState.NuclearPowerEngaged;
@@ -100,7 +84,7 @@ internal class NuclearChargeHandler : CyclopsCharger
 
             float generatedPower = this.NuclearHandler.GetBatteryPower(chargeRate, requestedPower);
 
-            this.HeatLevel += generatedPower * HeatModifier;
+            // No heat accumulation in NoHeat edition
 
             return generatedPower;
         }
